@@ -1,0 +1,15 @@
+[Unit]
+Description=Crucible Label Printer MQTT
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lab
+WorkingDirectory=/home/lab/crucible-label-printer
+ExecStart=/home/lab/crucible-label-printer/.venv/bin/python /home/lab/crucible-label-printer/crucible_label_printer.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
