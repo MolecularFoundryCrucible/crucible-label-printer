@@ -135,7 +135,9 @@ def heartbeat(client: mqtt.Client) -> None:
 
 
 def main():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="label-printer-1")
+    client_id = os.environ.get("MQTT_CLIENT_ID") or PRINTER_NAME.replace("/", "-")
+    log.info("Connecting with client_id=%s", client_id)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
     client.on_connect = on_connect
     client.on_message = on_message
 
