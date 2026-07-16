@@ -1,0 +1,82 @@
+---
+- name: Deploy application
+  hosts: crucible_print_servers
+  # no play-level become — connect as lab, elevate only where needed
+
+  vars:
+    gcp_project: mf-crucible
+    app_dir: /home/lab/crucible-label-printer
+    repo_url: https://github.com/MolecularFoundryCrucible/crucible-label-printer.git
+    service_name: crucible-label-printer
+    get_secret_cmd: "gcloud secrets versions access latest --project={{ gcp_project }} --secret="
+
+  tasks:
+    # --- Initial setup (root for apt) ---
+    - name: Install system apt packages
+      ansible.builtin.apt:
+        name:
+          - git
+          - curl
+          - acl
+        state: present
+        update_cache: true
+      become: true
+      tags: [setup]
+
+    - name: Install uv (official installer)
+      ansible.builtin.shell: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+      args:
+        creates: /home/lab/.local/bin/uv
+      tags: [setup]
+      # runs as lab -> uv installed in lab's ~/.local/bin
+
+    # --- Deploy: code ---
+    - name: Pull latest git
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+      notify: Restart services
+      tags: [git, deploy]
+
+    # --- Secrets ---
+    - name: Fetch mqtt password from Google Secret Manager
+      ansible.builtin.set_fact:
+        mqtt_password: "{{ lookup('pipe', get_secret_cmd ~ 'mqtt-crucible-printers-passwd') }}"
+      no_log: true # hide logs so password doesn't leak
+      tags: [secrets]
+
+    - name: Render secret-bearing .env file
+      ansible.builtin.template:
+        src: dot_env.j2
+        dest: "{{ app_dir }}/.env"
+        mode: "0600"
+      no_log: true
+      tags: [secrets, config]
+
+    # --- Service (root for systemd) ---
+    - name: Symlink repo unit file into /etc/systemd/system
+      ansible.builtin.file:
+        src: "{{ app_dir }}/{{ service_name }}.service"
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        state: link
+      become: true
+      tags: [setup, deploy]
+
+    - name: Enable and start service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      become: true
+      tags: [setup, deploy]
+
+  handlers:
+    - name: Restart services
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: restarted
+        daemon_reload: true
+      become: true

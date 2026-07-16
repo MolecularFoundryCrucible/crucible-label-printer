@@ -1,0 +1,10 @@
+crucible_print_servers:
+  hosts:
+    crucible-print1.dhcp.lbl.gov:
+      print_id: print1
+      hardware: rpi4-2GB
+    crucible-print-b30-113.dhcp.lbl.gov:
+      print_id: b30-113
+      hardware: rpi3
+  vars:
+    ansible_user: lab

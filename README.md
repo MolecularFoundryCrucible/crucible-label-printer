@@ -12,25 +12,47 @@ Includes systemd service file, env.sample, and two test publishers.
   * 16GB MicroSD
  * Brother D610BT label printer (Other Brother Tape printers supported)
 
+# Software
+
+ * Raspberry Pi OS Trixie
+ * Print driver / CLI: https://git.familie-radermacher.ch/linux/ptouch-print.git
+ * fleet management: Ansible
+
 
 # Configuring
 
-Configure Raspberry Pi
 
-Install Raspberry Pi OS (64bit Trixie 2026-06) using RPi Imager
+### Install Raspberry Pi OS Lite (64bit Trixie 2026-06) using RPi Imager
 
 Config:
 
-* Username: lab
-* password: see secrets
-* hostname: `crucible-print1`
+* Username: `lab`
+* password: (GCP secret`crucible-print-lab-password`)
+* hostname: `crucible-print1` or similar
 * wifi: `lbnl-open`
-* enable SSH
-
-add ssh key
-
+* enable SSH with password
 
 Note, on ethernet at LBL IP address resolves to: `crucible-print1.dhcp.lbl.gov`
+
+### First ssh login:
+
+#### add ssh key:
+
+Note: the ssh key created and stored in google cloud secrets using `ansible/create-ssh-key-store-google-secret.sh`
+
+write the public key into `/home/lab/.ssh/authorized_keys`
+
+Public key
+`ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPi8DzXTC0ZXdXHmo0QiDZYYL43lt/nYRWYGqTQc+N+i crucible-print-ssh-key-for-ansible
+`
+
+or use:
+```sh
+gcloud secrets versions access latest --secret=crucible-print-ssh-key-pub --project="mf-crucible" \
+  | ssh lab@PRINT_HOST "cat >> ~/.ssh/authorized_keys"
+```
+
+
 
 ## packages
 
@@ -87,4 +109,17 @@ journalctl -u crucible-label-printer -f     # tail logs
 sudo systemctl daemon-reload                # after editing the .service file
 sudo systemctl restart crucible-label-printer
 sudo systemctl disable crucible-label-printer   # remove from boot
+```
+
+
+# Ansible
+
+Most of the previous steps have been now incorporated into an Ansible playbook in `ansible/`
+
+`ansible/load-ssh-key.sh` will grab the SSH private key from Google Secret Manager and put in the active `ssh-agent` for the terminal session.
+
+```sh
+cd ansible/
+sh ./load-ssh-key.sh
+ansible-playbook deploy.yaml
 ```
