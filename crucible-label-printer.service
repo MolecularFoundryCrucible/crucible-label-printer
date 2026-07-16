@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=lab
 WorkingDirectory=/home/lab/crucible-label-printer
-ExecStart=/home/lab/crucible-label-printer/.venv/bin/python /home/lab/crucible-label-printer/crucible_label_printer.py
+ExecStart=/home/lab/.local/bin/uv run python crucible_label_printer.py
 Restart=always
 RestartSec=5
 
