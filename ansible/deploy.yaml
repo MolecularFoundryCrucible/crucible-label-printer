@@ -9,6 +9,7 @@
     repo_url: https://github.com/MolecularFoundryCrucible/crucible-label-printer.git
     service_name: crucible-label-printer
     get_secret_cmd: "gcloud secrets versions access latest --project={{ gcp_project }} --secret="
+    ptouch_src: /home/lab/ptouch-print-src
 
   tasks:
     # --- Initial setup (root for apt) ---
@@ -18,10 +19,24 @@
           - git
           - curl
           - acl
+          - cmake
+          - build-essential
+          - libusb-1.0-0-dev
+          - libusb-1.0-0
+          - gettext
+          - libgd-dev
         state: present
         update_cache: true
       become: true
-      tags: [setup]
+      tags: [setup, apt]
+
+    - name: Add lab user to lp group for printer USB access
+      ansible.builtin.user:
+        name: lab
+        groups: lp
+        append: true
+      become: true
+      tags: [setup] 
 
     - name: Install uv (official installer)
       ansible.builtin.shell: |
@@ -30,6 +45,36 @@
         creates: /home/lab/.local/bin/uv
       tags: [setup]
       # runs as lab -> uv installed in lab's ~/.local/bin
+
+    # TODO add tailscale setup
+
+    - name: Pull latest ptouch-print repository
+      ansible.builtin.git:
+        repo: "https://git.familie-radermacher.ch/linux/ptouch-print.git"
+        dest: "{{ ptouch_src }}"
+        version: master
+        force: true  # compile.sh dirties the tree; wipe local changes on re-run
+      register: ptouch_clone
+      tags: [setup, compile_ptouch]
+
+    - name: Compile ptouch-print via bundled compile.sh
+      ansible.builtin.command:
+        cmd: sh compile.sh
+        chdir: "{{ ptouch_src }}"
+        #creates: "{{ ptouch_src }}/build/ptouch-print"
+      when: ptouch_clone.changed
+      tags: [setup, compile_ptouch]
+
+    - name: Copy compiled ptouch-print binary to ~/.local/bin
+      ansible.builtin.copy:
+        src: "{{ ptouch_src }}/build/ptouch-print"
+        dest: "/home/lab/.local/bin/ptouch-print"
+        owner: "lab"
+        group: "lab"
+        mode: "0755"
+        remote_src: true      # source is on the target host, not the control node
+      when: ptouch_clone.changed
+      tags: [setup, compile_ptouch]
 
     # --- Deploy: code ---
     - name: Pull latest git

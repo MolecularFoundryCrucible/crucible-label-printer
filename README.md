@@ -15,7 +15,8 @@ Includes systemd service file, env.sample, and two test publishers.
 # Software
 
  * Raspberry Pi OS Trixie
- * Print driver / CLI: https://git.familie-radermacher.ch/linux/ptouch-print.git
+ * Print driver / CLI: https://dominic.familie-radermacher.ch/projekte/ptouch-print/
+    https://git.familie-radermacher.ch/linux/ptouch-print.git
  * fleet management: Ansible
 
 
