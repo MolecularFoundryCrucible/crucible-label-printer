@@ -293,11 +293,12 @@ You should get a valid TLS handshake and a response, confirming the cert chain a
 sudo headscale users create crucible-printers
 sudo headscale preauthkeys create --user 1 --expiration 24h --reusable
 ```
-
+```
 sudo headscale preauthkeys create --user 1 --expiration 24h --reusable
 hskey-auth-tcoNtcewEesy-...
+```
 
-On each node:
+On each node (and headscale-server, so it can act at ansible-control pane):
 
 ```
 curl -fsSL https://tailscale.com/install.sh | sh

@@ -10,11 +10,11 @@ Includes systemd service file, env.sample, and two test publishers.
 
  * Raspberry Pi 4/5
   * 16GB MicroSD
- * Brother D610BT label printer (Other Brother Tape printers supported)
+ * Brother PT-710BT label printer (Other Brother Tape printers supported, D610BT tested)
 
 # Software
 
- * Raspberry Pi OS Trixie
+ * Raspberry Pi OS Trixie Lite
  * Print driver / CLI: https://dominic.familie-radermacher.ch/projekte/ptouch-print/
     https://git.familie-radermacher.ch/linux/ptouch-print.git
  * fleet management: Ansible
@@ -124,3 +124,9 @@ cd ansible/
 sh ./load-ssh-key.sh
 ansible-playbook deploy.yaml
 ```
+
+Note that with tailnet configuration, we should run the ansible commands on `headscale.mfdata.org` which is also a noder on the `crucible-printer` tailnet. 
+
+Use IAP SSH access to get `headscale.mfdata.org` then login `glcloud auth login` to get access to secrets needed for ansible commands.
+
+
