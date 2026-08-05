@@ -15,8 +15,8 @@ MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "crucible-printers")
 MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD")
 MQTT_CA_CERTS = os.environ.get("MQTT_CA_CERTS")
 
-CMD_TOPIC = "crucible-printer/printer1/print"
-
+CMD_TOPIC = "crucible-printer/ucd1/print"
+CMD_TOPIC = "crucible-printer/b30-113/print"
 
 def send_test_label(mfid: str = "MF0000000000001", name: str = "test sample") -> None:
     if not MQTT_USERNAME or not MQTT_PASSWORD:
