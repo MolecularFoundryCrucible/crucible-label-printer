@@ -53,9 +53,45 @@ gcloud secrets versions access latest --secret=crucible-print-ssh-key-pub --proj
   | ssh lab@PRINT_HOST "cat >> ~/.ssh/authorized_keys"
 ```
 
+#### connect to tailnet
+
+To get remote access when directly connected to LAN network, we use tailscale / headscale VPN. 
+
+On our headscale server (on GCP), get a temporary pre-authorization key:
+
+```sh
+headscale-server$ sudo headscale preauthkeys create --user 1 --expiration 24h --reusable
+```
+
+On new raspberry pi:
+
+Install tailscale client and register node with headscale server:
+
+```sh
+new-pi$ curl -fsSL https://tailscale.com/install.sh | sh
+new-pi$ sudo tailscale up --login-server=https://headscale.mfdata.org --authkey=<your-preauth-key>
+```
+
+and verify connection:
+
+```sh
+new-pi$ tailscale whoami
+Machine:
+  Name:          crucible-print-b67-1201.ts.mfdata.org
+  ID:            4
+  Addresses:     [100.64.0.4/32 fd7a:115c:a1e0::4/128]
+User:
+  Name:     crucible-printers
+  ID:       1
+```
 
 
-## packages
+
+
+
+## Manual Install (replaced by Ansible now)
+
+### packages
 
 ```
 sudo apt install fonts-dejavu-core
@@ -63,7 +99,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 
-## set up ptouch-print
+### set up ptouch-print
 ```
 # dependencies
 sudo apt update
@@ -90,13 +126,13 @@ sudo snap connect ptouch-print:raw-usb
 sudo usermod -aG lp lab # give access to device
 ```
 
-# Clone Repo
+### Clone Repo
 ```sh
 git clone crucible-label-printer
 ```
 
 
-# Setup as a systemd service
+### Setup as a systemd service
 
 ```sh
 sudo systemctl enable /home/lab/crucible-label-printer/crucible-label-printer.service
@@ -116,6 +152,8 @@ sudo systemctl disable crucible-label-printer   # remove from boot
 # Ansible
 
 Most of the previous steps have been now incorporated into an Ansible playbook in `ansible/`
+
+You should run ansible on a machine on the tailnet, `headscale-server` is a good option since it is part of the crucible-printers tailnet.
 
 `ansible/load-ssh-key.sh` will grab the SSH private key from Google Secret Manager and put in the active `ssh-agent` for the terminal session.
 
