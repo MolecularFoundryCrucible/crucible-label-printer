@@ -9,5 +9,8 @@ crucible_print_servers:
     crucible-print-b30-113.ts.mfdata.org: #crucible-print-b30-113.dhcp.lbl.gov:
       print_id: b30-113
       hardware: rpi3
+    crucible-print-b67-1201.ts.mfdata.org:
+      print_id: b67-1201
+      hardward: rpi5-2GB
   vars:
     ansible_user: lab
