@@ -29,13 +29,15 @@ Config:
 
 * Username: `lab`
 * password: (GCP secret`crucible-print-lab-password`)
-* hostname: `crucible-print1` or similar
+* hostname: `crucible-print-42` or similar
 * wifi: `lbnl-open`
 * enable SSH with password
 
-Note, on ethernet at LBL IP address resolves to: `crucible-print1.dhcp.lbl.gov`
+Note, on ethernet at LBL IP address resolves to: `crucible-print-42.dhcp.lbl.gov`
 
 ### First ssh login:
+
+ssh lab@crucible-print-42.dhcp.lbl.gov
 
 #### add ssh key:
 
