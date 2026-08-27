@@ -13,10 +13,10 @@ crucible_print_servers:
       print_id: b67-1201
       hardware: rpi5-2GB
     crucible-print-42.ts.mfdata.org:
-      print_id: b30-122
+      print_id: b30-107 #b30-122
       hardware: rpi4-2GB
     crucible-print-43.ts.mfdata.org:
-      print_id: b30-107
+      print_id: b30-122 #b30-107
       hardware: rpi4-2GB
   crucible-print-44.ts.mfdata.org: # originally b67-1201
       print_id: p44
