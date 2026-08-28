@@ -18,14 +18,14 @@ crucible_print_servers:
     crucible-print-43.ts.mfdata.org:
       print_id: b30-107
       hardware: rpi4-2GB
-  crucible-print-44.ts.mfdata.org: # originally b67-1201
-      print_id: p44
-      hardware: rpi5-2GB
-  crucible-print-45.ts.mfdata.org:
-      print_id: p45
-      hardware: rpi5-2GB
-  crucible-print-46.ts.mfdata.org:
-      print_id: p46
-      hardware: rpi5-2GB
+    crucible-print-44.ts.mfdata.org: # originally b67-1201
+        print_id: p44
+        hardware: rpi5-2GB
+    crucible-print-45.ts.mfdata.org:
+        print_id: p45
+        hardware: rpi5-2GB
+    crucible-print-46.ts.mfdata.org:
+        print_id: p46
+        hardware: rpi5-2GB
   vars:
     ansible_user: lab
