@@ -85,6 +85,13 @@
       notify: Restart services
       tags: [git, deploy]
 
+    - name: Sync venv to lockfile (removes stray packages)
+      ansible.builtin.command:
+        cmd: /home/lab/.local/bin/uv sync
+        chdir: "{{ app_dir }}"
+      notify: Restart services
+      tags: [git, deploy]
+
     # --- Secrets ---
     - name: Fetch mqtt password from Google Secret Manager
       ansible.builtin.set_fact:
