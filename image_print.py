@@ -50,14 +50,14 @@ def make_image(qr, text_lines, save_path, image_size = imsize, font_size = font_
 
 def make_25mm_image(qr, text_lines, save_path, image_size = imsize, font_size = font_size, background_color = bkgd_color, text_color = text_color):
     image = Image.new('1', image_size, 1)  # 1-bit, white background
-    Image.Image.paste(image, qr.convert('1'), (5,1))
+    Image.Image.paste(image, qr.convert('1'), (14,16))
     draw = ImageDraw.Draw(image)
     draw.fontmode = "1"  # disable font antialiasing
     font = load_bold_font(font_size)
-    y = 90
+    y = 3
     for l in text_lines:
-        draw.text((2, y), l, font=font, fill=0)
-        y += font_size +5
+        draw.text((imsize[0]//2, y), l, font=font, fill=0, anchor="mt")
+        y += font_size +113
 
     image.save(save_path)
     
