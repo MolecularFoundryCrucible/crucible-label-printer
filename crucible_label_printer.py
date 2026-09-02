@@ -106,7 +106,7 @@ def print_label(job: dict) -> None:
     make_25mm_image(qr_img, ["Crucible", name_str], "label.png")
 
     subprocess.run(
-        ["ptouch-print", "--image", "label.png"],
+        ["ptouch-print", "--auto-cut", "--image", "label.png"],
         check=True,
         capture_output=True,
         text=True,
