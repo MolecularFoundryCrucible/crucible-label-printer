@@ -33,11 +33,11 @@ Config:
 * wifi: `lbnl-open`
 * enable SSH with password
 
-Note, on ethernet at LBL IP address resolves to: `crucible-print-42.dhcp.lbl.gov`
+Note, on ethernet at LBL IP address resolves to: `crucible-print-42.dhcp.lbl.gov` or `crucible-print-42.dhcp.lbl.us`
 
-### First ssh login:
+### First ssh login (may have to log in twice):
 
-ssh lab@crucible-print-42.dhcp.lbl.gov
+ssh lab@crucible-print-42.dhcp.lbl.gov (try .us if it does not work)
 
 #### add ssh key:
 
@@ -87,11 +87,70 @@ User:
   ID:       1
 ```
 
+# Ansible (preferred deployment method)
 
+Most of the manual steps below have been incorporated into an Ansible playbook in `ansible/`.
+This is the preferred way to set up a Pi once SSH key + Tailscale are done above — the "Manual
+Install" section further down is kept only as a fallback/reference.
 
+You should run ansible from a machine that's already on the tailnet — `headscale-server` is a
+good option since it's a member of the `crucible-printers` tailnet. Clone the
+`crucible-label-printer` repo onto that control machine.
 
+```sh
+# on headscale-server (or another tailnet-joined control machine):
+git clone https://github.com/MolecularFoundryCrucible/crucible-label-printer.git
+cd crucible-label-printer/ansible
+```
 
-## Manual Install (replaced by Ansible now)
+Add the new Pi to `inventory.yaml` under `crucible_print_servers.hosts`, using the tailnet
+hostname from `tailscale status` and a `print_id` of your choosing (this becomes the MQTT topic
+`crucible-printer/<print_id>/print`, and is what you'll set as `PRINTER_ID` in
+`crucible-upload-uis`):
+
+```yaml
+crucible-print-42.ts.mfdata.org:
+  print_id: <your-print-id>
+  hardware: rpi5-4gb
+```
+
+`ansible/load-ssh-key.sh` grabs the fleet SSH private key from Google Secret Manager and loads
+it into the active `ssh-agent` for the terminal session. Run:
+
+```sh
+source ./load-ssh-key.sh
+```
+
+If this fails with `agent refused operation`, it usually means `$SSH_AUTH_SOCK` was already
+pointing at a stale or forwarded agent that won't accept new keys. Start a fresh one and re-run:
+
+```sh
+eval "$(ssh-agent -s)"
+source ./load-ssh-key.sh
+```
+
+Make sure `gcloud auth login` has been run on the control machine (needed both for the SSH key
+fetch above and for the MQTT password secret pulled during the playbook run), and that
+`ansible` itself is installed (`ansible --version`; `sudo apt install ansible` if missing).
+
+Then run the playbook — `--limit` scopes it to just your new host, useful when testing a single
+new Pi without touching the rest of the fleet:
+
+```sh
+ansible-playbook deploy.yaml --limit crucible-print-51.ts.mfdata.org --ask-become-pass
+```
+
+When prompted for the **BECOME password**, that's the `lab` user's own sudo password on the
+target Pi (the same one set during imaging).
+
+After it completes, verify on the Pi:
+
+```sh
+systemctl status crucible-label-printer     # check it's running
+journalctl -u crucible-label-printer -f     # tail logs, confirm it connects/subscribes
+```
+
+## Manual Install (fallback / reference — Ansible is preferred, see above)
 
 ### packages
 
@@ -150,23 +209,21 @@ sudo systemctl restart crucible-label-printer
 sudo systemctl disable crucible-label-printer   # remove from boot
 ```
 
+### Manual testing
 
-# Ansible
-
-Most of the previous steps have been now incorporated into an Ansible playbook in `ansible/`
-
-You should run ansible on a machine on the tailnet, `headscale-server` is a good option since it is part of the crucible-printers tailnet.
-
-`ansible/load-ssh-key.sh` will grab the SSH private key from Google Secret Manager and put in the active `ssh-agent` for the terminal session.
+Once the service is running, two scripts under the repo root can publish a test print job
+directly (edit the hardcoded `CMD_TOPIC`/topic in either script to match your `print_id` first):
 
 ```sh
-cd ansible/
-sh ./load-ssh-key.sh
-ansible-playbook deploy.yaml
+uv run python send_test_label_single.py "MF0000000000001" "test sample"
 ```
 
-Note that with tailnet configuration, we should run the ansible commands on `headscale.mfdata.org` which is also a noder on the `crucible-printer` tailnet. 
+Watch `journalctl -u crucible-label-printer -f` on the Pi to confirm the job is received and
+printed. To sanity-check the printer/USB/driver chain in isolation, without MQTT involved at
+all, run directly on the Pi:
 
-Use IAP SSH access to get `headscale.mfdata.org` then login `glcloud auth login` to get access to secrets needed for ansible commands.
-
+```sh
+ptouch-print --info
+ptouch-print --text "hello"
+```
 
