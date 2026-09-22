@@ -27,5 +27,8 @@ crucible_print_servers:
     crucible-print-46.ts.mfdata.org:
         print_id: p46
         hardware: rpi5-2GB
+    crucible-print-51.ts.mfdata.org:
+        print_id: spinbot
+        hardware: rpi400-4GB
   vars:
     ansible_user: lab
