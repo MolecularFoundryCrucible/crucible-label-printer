@@ -29,6 +29,9 @@ job_queue: "queue.Queue[dict]" = queue.Queue()
 seen_job_ids: dict[str, float] = {}  # for dedupe
 DEDUPE_WINDOW = 60  # seconds
 
+PRINT_RETRIES = 2
+PRINT_RETRY_DELAY = 3  # seconds
+
 
 def get_ip_address() -> str:
     # Open a UDP socket to a public address to discover the outbound IP.
@@ -105,12 +108,24 @@ def print_label(job: dict) -> None:
     # label image
     make_25mm_image(qr_img, [name_str, mfid_str[0:13]], "label.png")
 
-    subprocess.run(
-        ["ptouch-print", "--image", "label.png"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    # The printer can still be busy finishing the previous label's feed/cut
+    # cycle, which makes ptouch-print exit non-zero even though nothing is
+    # actually wrong. Retry a couple times before giving up.
+    for attempt in range(PRINT_RETRIES + 1):
+        try:
+            subprocess.run(
+                ["ptouch-print", "--image", "label.png"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return
+        except subprocess.CalledProcessError:
+            if attempt == PRINT_RETRIES:
+                raise
+            log.warning("ptouch-print failed (attempt %d/%d), retrying in %ds",
+                        attempt + 1, PRINT_RETRIES, PRINT_RETRY_DELAY)
+            time.sleep(PRINT_RETRY_DELAY)
 
 
 def worker(client: mqtt.Client) -> None:
