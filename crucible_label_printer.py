@@ -114,7 +114,7 @@ def print_label(job: dict) -> None:
     for attempt in range(PRINT_RETRIES + 1):
         try:
             subprocess.run(
-                ["ptouch-print", "--image", "label.png"],
+                ["ptouch-print", "--precut", "--image", "label.png"],
                 check=True,
                 capture_output=True,
                 text=True,
