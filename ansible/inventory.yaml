@@ -1,17 +1,11 @@
 crucible_print_servers:
   hosts:
-#    131.243.182.179: #crucible-print1.dhcp.lbl.gov: 
-#      print_id: print1
-#      hardware: rpi4-2GB
     crucible-print-ucd1.ts.mfdata.org:
       print_id: ucd1
       hardware: rpi4-2GB      
     crucible-print-b30-113.ts.mfdata.org: #crucible-print-b30-113.dhcp.lbl.gov:
       print_id: b30-113
       hardware: rpi3
-    crucible-print-b67-1201.ts.mfdata.org:
-      print_id: b67-1201
-      hardware: rpi5-2GB
     crucible-print-42.ts.mfdata.org:
       print_id: b30-122
       hardware: rpi4-2GB
@@ -19,7 +13,7 @@ crucible_print_servers:
       print_id: b30-107
       hardware: rpi4-2GB
     crucible-print-44.ts.mfdata.org: # originally b67-1201
-        print_id: p44
+        print_id: b67-1201
         hardware: rpi5-2GB
     crucible-print-45.ts.mfdata.org:
         print_id: p45
